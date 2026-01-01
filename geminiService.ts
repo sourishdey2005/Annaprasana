@@ -3,7 +3,15 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NutritionData } from './types';
 
 export const analyzeFoodImage = async (base64Image: string): Promise<NutritionData> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+  // Defensive check for process.env to prevent ReferenceError in environments where process is not defined globally
+  const apiKey = typeof process !== 'undefined' && process.env ? process.env.API_KEY : '';
+  
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please ensure API_KEY is set in your deployment environment variables.");
+  }
+
+  // Use the key to initialize the GenAI client
+  const ai = new GoogleGenAI({ apiKey });
   
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
@@ -39,5 +47,10 @@ export const analyzeFoodImage = async (base64Image: string): Promise<NutritionDa
   const jsonStr = response.text;
   if (!jsonStr) throw new Error("Could not analyze image. Please try again.");
   
-  return JSON.parse(jsonStr) as NutritionData;
+  try {
+    return JSON.parse(jsonStr) as NutritionData;
+  } catch (e) {
+    console.error("JSON parsing error:", e);
+    throw new Error("The cosmic analysis returned an invalid format. Please try another photo.");
+  }
 };
