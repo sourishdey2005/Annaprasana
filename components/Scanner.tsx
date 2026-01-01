@@ -1,6 +1,6 @@
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, Loader2, Sparkles, AlertCircle } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Camera, Upload, Loader2, Sparkles } from 'lucide-react';
 import { analyzeFoodImage } from '../geminiService';
 import { saveScan } from '../db';
 import { FoodScan } from '../types';
@@ -14,23 +14,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isKeyMissing, setIsKeyMissing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // Check for the API key using multiple common patterns
-    const checkKey = () => {
-      try {
-        const key = process.env.API_KEY;
-        if (key && key !== 'your_gemini_api_key_here' && key !== 'undefined' && key !== '') return true;
-      } catch (e) {}
-      
-      const winKey = (window as any).process?.env?.API_KEY || (window as any).API_KEY;
-      return !!(winKey && winKey !== 'your_gemini_api_key_here' && winKey !== 'undefined' && winKey !== '');
-    };
-
-    setIsKeyMissing(!checkKey());
-  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -60,7 +44,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
       onScanComplete(newScan);
       setImage(null);
     } catch (err: any) {
-      setError(err.message || "Failed to analyze meal. Please check your connection.");
+      setError(err.message || "Failed to analyze meal. Please check your connection and API key.");
     } finally {
       setLoading(false);
     }
@@ -68,18 +52,6 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
 
   return (
     <div className="flex flex-col items-center justify-center p-4 max-w-md mx-auto min-h-[70vh]">
-      {isKeyMissing && (
-        <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top duration-500 mx-4">
-          <AlertCircle className="text-orange-500 shrink-0 mt-0.5" size={18} />
-          <div>
-            <h4 className="text-orange-800 font-bold text-sm">Deployment Required</h4>
-            <p className="text-orange-700 text-xs mt-1 leading-relaxed">
-              Gemini API key not detected in the current build. After adding <b>API_KEY</b> to Vercel, you must go to the <b>Deployments</b> tab and <b>Redeploy</b> to apply the changes.
-            </p>
-          </div>
-        </div>
-      )}
-
       {!image && !loading && (
         <div className="text-center animate-in fade-in zoom-in duration-700">
           <div className="w-24 h-24 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-orange-100">
