@@ -3,13 +3,27 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NutritionData } from './types';
 
 export const analyzeFoodImage = async (base64Image: string): Promise<NutritionData> => {
-  // Use the API key directly from process.env.API_KEY as required by bundlers
-  if (!process.env.API_KEY) {
-    throw new Error("Missing Gemini API Key. Ensure the environment variable 'API_KEY' is set in your deployment platform.");
+  /**
+   * Requirement: API key must be obtained from process.env.API_KEY.
+   * In modern browser environments and bundlers (Vite, Webpack, Vercel), 
+   * 'process.env.API_KEY' is often replaced with a static string during build.
+   */
+  let apiKey: string | undefined;
+  
+  try {
+    // Standard Node/Bundler approach
+    apiKey = process.env.API_KEY;
+  } catch (e) {
+    // Fallback for environments where 'process' is not defined
+    apiKey = (window as any).process?.env?.API_KEY || (window as any).API_KEY;
   }
 
-  // Initialize client using the specific pattern required for injection
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey === 'undefined' || apiKey === '') {
+    throw new Error("Missing Gemini API Key. Please ensure 'API_KEY' is set in your Vercel environment variables and that you have triggered a NEW deployment.");
+  }
+
+  // Initialize client right before making the call to ensure the latest key is used.
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const response = await ai.models.generateContent({

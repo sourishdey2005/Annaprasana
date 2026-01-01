@@ -18,14 +18,18 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check for literal presence of the key. 
-    // If the bundler replaced it, it won't be empty or "undefined".
-    const key = process.env.API_KEY;
-    if (!key || key === 'your_gemini_api_key_here' || key === 'undefined') {
-      setIsKeyMissing(true);
-    } else {
-      setIsKeyMissing(false);
-    }
+    // Check for the API key using multiple common patterns
+    const checkKey = () => {
+      try {
+        const key = process.env.API_KEY;
+        if (key && key !== 'your_gemini_api_key_here' && key !== 'undefined' && key !== '') return true;
+      } catch (e) {}
+      
+      const winKey = (window as any).process?.env?.API_KEY || (window as any).API_KEY;
+      return !!(winKey && winKey !== 'your_gemini_api_key_here' && winKey !== 'undefined' && winKey !== '');
+    };
+
+    setIsKeyMissing(!checkKey());
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,9 +72,9 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
         <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top duration-500 mx-4">
           <AlertCircle className="text-orange-500 shrink-0 mt-0.5" size={18} />
           <div>
-            <h4 className="text-orange-800 font-bold text-sm">Key Detection Issue</h4>
+            <h4 className="text-orange-800 font-bold text-sm">Deployment Required</h4>
             <p className="text-orange-700 text-xs mt-1 leading-relaxed">
-              Gemini API key not found in <code>process.env.API_KEY</code>. If you just added it to Vercel, try redeploying your app.
+              Gemini API key not detected in the current build. After adding <b>API_KEY</b> to Vercel, you must go to the <b>Deployments</b> tab and <b>Redeploy</b> to apply the changes.
             </p>
           </div>
         </div>
@@ -117,8 +121,7 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
           
           <button 
             onClick={processImage}
-            disabled={isKeyMissing}
-            className={`flex items-center justify-center gap-3 w-full py-4 px-6 rounded-2xl font-semibold shadow-lg transition-all ${isKeyMissing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-saffron text-white shadow-orange-200 hover:bg-orange-500'}`}
+            className="flex items-center justify-center gap-3 w-full py-4 px-6 bg-saffron text-white rounded-2xl font-semibold shadow-lg shadow-orange-200 hover:bg-orange-500 transition-all active:scale-95"
           >
             <Sparkles size={20} />
             Analyze Nutrients
