@@ -10,8 +10,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script>
-    // Ensure process.env exists for the Gemini SDK and other libraries
-    window.process = window.process || { env: {} };
+    /** 
+     * Polyfill for process.env to ensure compatibility with libraries 
+     * that expect a Node-like environment variable structure.
+     */
+    if (typeof window.process === 'undefined') {
+      window.process = { env: {} };
+    } else if (typeof window.process.env === 'undefined') {
+      window.process.env = {};
+    }
   </script>
   <style>
     body {

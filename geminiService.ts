@@ -3,9 +3,15 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NutritionData } from './types';
 
 export const analyzeFoodImage = async (base64Image: string): Promise<NutritionData> => {
-  // Directly initialize the AI client with the environment variable.
-  // Vercel/Vite will replace 'process.env.API_KEY' with your actual key during the build process.
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // Obtain the API key from the environment variable as required.
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey) {
+    throw new Error("Gemini API Key is not set. Please configure the 'API_KEY' environment variable in your deployment settings.");
+  }
+
+  // Initialize the AI client with the key from the environment.
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const response = await ai.models.generateContent({
@@ -19,7 +25,7 @@ export const analyzeFoodImage = async (base64Image: string): Promise<NutritionDa
             },
           },
           {
-            text: "You are a Vedic Nutritionist. Identify the food in this image. Provide: Name, Estimated Calories, Protein, Carbs, and Fats. Format as a clean JSON object."
+            text: "You are a Vedic Nutritionist. Identify the food in this image. Provide: Name, Estimated Calories, Protein, Carbs, and Fats. Format as a clean JSON object. Focus on wholesome, sattvic descriptions if applicable."
           }
         ],
       },
@@ -40,11 +46,15 @@ export const analyzeFoodImage = async (base64Image: string): Promise<NutritionDa
     });
 
     const jsonStr = response.text;
-    if (!jsonStr) throw new Error("No data returned from analysis.");
+    if (!jsonStr) throw new Error("The analysis returned no results. Please try a clearer image.");
     
     return JSON.parse(jsonStr) as NutritionData;
   } catch (err: any) {
     console.error("Gemini Analysis Failure:", err);
-    throw new Error(err.message || "An unexpected error occurred during food analysis. Ensure your API_KEY is valid and your project is deployed.");
+    // Provide a user-friendly error message if the API key is invalid or restricted.
+    if (err.message?.includes("API key")) {
+      throw new Error("Invalid or restricted API Key. Please verify your Gemini API key settings.");
+    }
+    throw new Error(err.message || "An unexpected error occurred during food analysis.");
   }
 };
