@@ -18,11 +18,13 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Check for API key on mount to warn user if deployment isn't configured correctly
-    const env = (window as any).process?.env || (typeof process !== 'undefined' ? process.env : {});
-    const key = env.API_KEY;
-    if (!key || key === 'your_gemini_api_key_here' || key === 'your_api_key_here' || key === '') {
+    // Check for literal presence of the key. 
+    // If the bundler replaced it, it won't be empty or "undefined".
+    const key = process.env.API_KEY;
+    if (!key || key === 'your_gemini_api_key_here' || key === 'undefined') {
       setIsKeyMissing(true);
+    } else {
+      setIsKeyMissing(false);
     }
   }, []);
 
@@ -66,9 +68,9 @@ const Scanner: React.FC<ScannerProps> = ({ onScanComplete }) => {
         <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-2xl flex items-start gap-3 animate-in slide-in-from-top duration-500 mx-4">
           <AlertCircle className="text-orange-500 shrink-0 mt-0.5" size={18} />
           <div>
-            <h4 className="text-orange-800 font-bold text-sm">Action Required</h4>
+            <h4 className="text-orange-800 font-bold text-sm">Key Detection Issue</h4>
             <p className="text-orange-700 text-xs mt-1 leading-relaxed">
-              To enable scanning, set your Gemini API key in the environment variable <strong>API_KEY</strong> in your deployment settings.
+              Gemini API key not found in <code>process.env.API_KEY</code>. If you just added it to Vercel, try redeploying your app.
             </p>
           </div>
         </div>

@@ -3,18 +3,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NutritionData } from './types';
 
 export const analyzeFoodImage = async (base64Image: string): Promise<NutritionData> => {
-  // Requirement: API key must be obtained exclusively from process.env.API_KEY
-  // We check both global process and window.process for maximum browser compatibility
-  const env = (window as any).process?.env || (typeof process !== 'undefined' ? process.env : {});
-  const apiKey = env.API_KEY;
-  
-  if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey === 'your_api_key_here' || apiKey === '') {
-    console.error("Critical Error: API_KEY is missing in the environment.");
-    throw new Error("Missing Gemini API Key. Please add 'API_KEY' to your environment variables in your deployment dashboard (e.g., Vercel, Netlify).");
+  // Use the API key directly from process.env.API_KEY as required by bundlers
+  if (!process.env.API_KEY) {
+    throw new Error("Missing Gemini API Key. Ensure the environment variable 'API_KEY' is set in your deployment platform.");
   }
 
-  // Initialize the GenAI client with the secured key
-  const ai = new GoogleGenAI({ apiKey });
+  // Initialize client using the specific pattern required for injection
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -49,7 +44,7 @@ export const analyzeFoodImage = async (base64Image: string): Promise<NutritionDa
     });
 
     const jsonStr = response.text;
-    if (!jsonStr) throw new Error("Cosmic analysis yielded no results. Please try another photo.");
+    if (!jsonStr) throw new Error("Analysis yielded no results. Please try another photo.");
     
     return JSON.parse(jsonStr) as NutritionData;
   } catch (err: any) {
