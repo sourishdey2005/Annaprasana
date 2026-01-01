@@ -1,0 +1,7 @@
+{
+  "name": "Annaprasanna",
+  "description": "A Modern Vedic nutrition companion that identifies food from images and tracks calories and macronutrients using Gemini AI and local storage.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
