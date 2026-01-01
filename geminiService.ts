@@ -3,15 +3,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NutritionData } from './types';
 
 export const analyzeFoodImage = async (base64Image: string): Promise<NutritionData> => {
-  // Obtain the API key from the environment variable as required.
-  const apiKey = process.env.API_KEY;
-  
-  if (!apiKey) {
-    throw new Error("Gemini API Key is not set. Please configure the 'API_KEY' environment variable in your deployment settings.");
-  }
-
-  // Initialize the AI client with the key from the environment.
-  const ai = new GoogleGenAI({ apiKey });
+  // Always use the named parameter apiKey from process.env.API_KEY
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -46,15 +39,11 @@ export const analyzeFoodImage = async (base64Image: string): Promise<NutritionDa
     });
 
     const jsonStr = response.text;
-    if (!jsonStr) throw new Error("The analysis returned no results. Please try a clearer image.");
+    if (!jsonStr) throw new Error("No analysis data received from the Vedic Nutritionist.");
     
     return JSON.parse(jsonStr) as NutritionData;
   } catch (err: any) {
     console.error("Gemini Analysis Failure:", err);
-    // Provide a user-friendly error message if the API key is invalid or restricted.
-    if (err.message?.includes("API key")) {
-      throw new Error("Invalid or restricted API Key. Please verify your Gemini API key settings.");
-    }
     throw new Error(err.message || "An unexpected error occurred during food analysis.");
   }
 };

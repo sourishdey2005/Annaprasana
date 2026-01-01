@@ -11,14 +11,15 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script>
     /** 
-     * Polyfill for process.env to ensure compatibility with libraries 
-     * that expect a Node-like environment variable structure.
+     * Polyfill for process.env.
+     * The key is provided here to ensure the application works in a browser environment
+     * where 'process' is not natively defined.
      */
-    if (typeof window.process === 'undefined') {
-      window.process = { env: {} };
-    } else if (typeof window.process.env === 'undefined') {
-      window.process.env = {};
-    }
+    window.process = {
+      env: {
+        API_KEY: "AIzaSyDQMv4rOMPlwM9LbpoaZRsccMo-lUYIacI"
+      }
+    };
   </script>
   <style>
     body {
@@ -61,6 +62,13 @@
     }
     .animate-spin-vedic {
       animation: spin-custom 1.5s linear infinite;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
   </style>
   <script type="importmap">
